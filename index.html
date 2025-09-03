@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Requisição de Compra - Protótipo</title>
+  <style>
+    :root {
+      --bg: #0f172a; /* slate-900 */
+      --panel: #111827; /* gray-900 */
+      --panel-2: #0b1220; /* slightly darker */
+      --muted: #94a3b8; /* slate-400 */
+      --text: #e5e7eb; /* gray-200 */
+      --primary: #22d3ee; /* cyan-400 */
+      --accent: #a78bfa; /* violet-400 */
+      --ok: #34d399; /* emerald-400 */
+      --warn: #f59e0b; /* amber-500 */
+      --danger: #ef4444; /* red-500 */
+      --border: #1f2937; /* gray-800 */
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+      background: linear-gradient(180deg, var(--bg), #020617);
+      color: var(--text);
+    }
+    header {
+      position: sticky; top: 0; z-index: 10; backdrop-filter: blur(8px);
+      background: rgba(2,6,23,0.7); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; padding: 12px 16px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: .3px; }
+    .brand .logo { width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, var(--primary), var(--accent)); box-shadow: 0 0 24px rgba(167,139,250,.3) inset; }
+    .muted { color: var(--muted); font-size: 12px; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .grid { display: grid; gap: 16px; }
+    .grid.cols-2 { grid-template-columns: 1fr 1fr; }
+    .panel {
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border); border-radius: 16px; padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    .panel h2 { margin: 0 0 10px; font-size: 18px; }
+    .toolbar { display:flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .btn {
+      border: 1px solid var(--border); background: #0b1220; color: var(--text);
+      padding: 10px 14px; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 14px;
+      transition: transform .05s ease, background .2s ease, border-color .2s ease;
+    }
+    .btn:hover { background: #0f172a; border-color: #334155; }
+    .btn:active { transform: translateY(1px); }
+    .btn.primary { background: linear-gradient(135deg, #0ea5e9, #22d3ee); color: #05243a; border: none; }
+    .btn.success { background: linear-gradient(135deg, #10b981, #34d399); color: #062a1e; border: none; }
+    .btn.warn { background: linear-gradient(135deg, #f59e0b, #fbbf24); color: #3b2503; border: none; }
+    .btn.danger { background: linear-gradient(135deg, #ef4444, #fb7185); color: #3c0910; border: none; }
+    .btn.ghost { background: transparent; border-color: #334155; color: var(--muted); }
+    input, select, textarea {
+      width: 100%; background: #0b1220; color: var(--text); border: 1px solid var(--border);
+      padding: 10px 12px; border-radius: 10px; outline: none; font-size: 14px;
+    }
+    input:focus, select:focus, textarea:focus { border-color: #334155; box-shadow: 0 0 0 3px rgba(34,211,238,0.12); }
+    label { font-size: 12px; color: var(--muted); display:block; margin-bottom: 6px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .row-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; }
+    .table { width: 100%; border-collapse: collapse; }
+    .table th, .table td { border-bottom: 1px solid var(--border); padding: 10px; text-align: left; font-size: 14px; }
+    .badge { padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; display:inline-block; }
+    .status-Pendente { background: #1f2937; color: #e5e7eb; }
+    .status-Em\ cotação { background: #0e7490; }
+    .status-Aprovada { background: #065f46; }
+    .status-Rejeitada { background: #7f1d1d; }
+    .status-Pedido\ Emitido { background: #4c1d95; }
+    .status-Em\ Entrega { background: #7c2d12; }
+    .status-Concluída { background: #14532d; }
+    .status-Cancelada { background: #991b1b; }
+    .chip { padding: 6px 10px; border-radius: 999px; font-size: 12px; border: 1px solid #334155; color: var(--muted); display:inline-flex; align-items:center; gap:6px; }
+    .sep { height: 1px; background: var(--border); margin: 12px 0; }
+    .right { display: flex; align-items: center; gap: 8px; }
+    .hidden { display: none !important; }
+    .footer { text-align: center; color: var(--muted); font-size: 12px; padding: 20px; }
+    .pill { font-size: 12px; padding: 6px 10px; background: #0b1220; border: 1px solid var(--border); border-radius: 999px; }
+    .card-list { display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .card { border: 1px solid var(--border); background: #0b1220; border-radius: 14px; padding: 12px; }
+    .card h3 { margin: 0 0 6px; font-size: 16px; }
+    .small { font-size: 12px; color: var(--muted); }
+    .stretch { width:100%; }
+    .nowrap { white-space: nowrap; }
+    .flex { display:flex; gap:8px; align-items:center; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div>
+        <div>Requisição de Compra</div>
+      </div>
+    </div>
+    <div class="right">
+      <span id="currentUserInfo" class="chip">Não autenticado</span>
+      <button id="btnLogout" class="btn ghost hidden">Sair</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- LOGIN -->
+    <section id="viewLogin" class="panel">
+      <h2>Entrar</h2>
+      <div class="row">
+        <div>
+          <label for="loginUser">Usuário</label>
+          <select id="loginUser"></select>
+        </div>
+        <div>
+          <label for="loginPass">Senha</label>
+          <input id="loginPass" type="password" placeholder="••••••" />
+        </div>
+      </div>
+      <div class="sep"></div>
+      <div class="toolbar">
+        <button id="btnLogin" class="btn primary">Entrar</button>
+        <button id="btnSeed" class="btn">(Re)popular dados de exemplo</button>
+      </div>
+      <p class="small">Dica: use qualquer usuário com senha <strong>123</strong> (dados de demonstração).</p>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="viewDashboard" class="panel hidden">
+      <div class="toolbar">
+        <button id="btnNewReq" class="btn primary">+ Nova Requisição</button>
+        <span class="pill">Perfil: <span id="roleLabel">—</span></span>
+        <span class="pill">Minhas pendências: <span id="myCounts">0</span></span>
+        <span class="stretch"></span>
+        <input id="searchBox" placeholder="Buscar por título, solicitante, fornecedor..." />
+        <select id="filterStatus">
+          <option value="">Todos status</option>
+          <option>Pendente</option>
+          <option>Em cotação</option>
+          <option>Aprovada</option>
+          <option>Rejeitada</option>
+          <option>Pedido Emitido</option>
+          <option>Em Entrega</option>
+          <option>Concluída</option>
+          <option>Cancelada</option>
+        </select>
+      </div>
+      <div class="sep"></div>
+      <div id="cards" class="card-list"></div>
+    </section>
+
+    <!-- FORM NOVA/EDIT REQUISIÇÃO -->
+    <section id="viewForm" class="panel hidden">
+      <div class="toolbar">
+        <button id="btnBack1" class="btn ghost">← Voltar</button>
+        <h2 style="margin:0;">Requisição <span id="formMode">(nova)</span></h2>
+        <span class="stretch"></span>
+        <button id="btnSaveReq" class="btn success">Salvar</button>
+        <button id="btnSubmitReq" class="btn primary">Enviar p/ aprovação</button>
+      </div>
+      <div class="sep"></div>
+
+      <div class="grid cols-2">
+        <div>
+          <label>Título</label>
+          <input id="reqTitle" placeholder="Ex.: Compra de EPIs" />
+        </div>
+        <div class="row">
+          <div>
+            <label>Centro de Custo</label>
+            <input id="reqCC" placeholder="Ex.: Manutenção - Fibras" />
+          </div>
+          <div>
+            <label>Data Necessidade</label>
+            <input id="reqNeedDate" type="date" />
+          </div>
+        </div>
+        <div>
+          <label>Descrição</label>
+          <textarea id="reqDesc" rows="4" placeholder="Justificativa e detalhes..."></textarea>
+        </div>
+        <div class="row">
+          <div>
+            <label>Sugestão de Fornecedor</label>
+            <input id="reqVendor" placeholder="Opcional" />
+          </div>
+          <div>
+            <label>Aprovador Responsável</label>
+            <select id="reqApprover"></select>
+          </div>
+        </div>
+      </div>
+
+      <h3>Itens</h3>
+      <table class="table" id="itemsTable">
+        <thead>
+          <tr><th>Descrição</th><th class="nowrap">Qtd</th><th class="nowrap">Preço Unit. (R$)</th><th>Total (R$)</th><th></th></tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr>
+            <td><input id="itemDesc" placeholder="Ex.: Luva nitrílica"/></td>
+            <td><input id="itemQty" type="number" min="1" value="1"/></td>
+            <td><input id="itemPrice" type="number" min="0" step="0.01" value="0"/></td>
+            <td class="nowrap" id="itemTotal">0,00</td>
+            <td><button id="btnAddItem" class="btn">Adicionar</button></td>
+          </tr>
+        </tfoot>
+      </table>
+      <div class="right"><strong>Total Geral:</strong> <span id="grandTotal">R$ 0,00</span></div>
+
+      <h3>Anexos (demo)</h3>
+      <div class="row">
+        <div>
+          <input id="fakeFileName" placeholder="Nome do arquivo (simulado)" />
+        </div>
+        <div>
+          <button id="btnAddFile" class="btn">Adicionar Anexo</button>
+        </div>
+      </div>
+      <div id="filesList" class="small"></div>
+    </section>
+
+    <!-- VISUALIZAÇÃO / WORKFLOW -->
+    <section id="viewDetail" class="panel hidden">
+      <div class="toolbar">
+        <button id="btnBack2" class="btn ghost">← Voltar</button>
+        <h2 style="margin:0;">Detalhe da Requisição</h2>
+        <span class="stretch"></span>
+        <span id="detailStatus" class="badge status-Pendente">Pendente</span>
+      </div>
+      <div class="sep"></div>
+
+      <div id="detailBody"></div>
+
+      <div class="sep"></div>
+
+      <div id="actionsArea" class="toolbar"></div>
+
+      <div class="sep"></div>
+
+      <h3>Histórico</h3>
+      <div id="timeline" class="grid"></div>
+    </section>
+
+    <div class="footer">Sistema de Requisições &copy; By Thaynison Couto</div>
+  </div>
+
+  <script>
+    /********************
+     * MODELO DE DADOS  *
+     ********************/
+    const DB_KEY = 'rc_prototipo_v1';
+
+    /** Estruturas
+     * users: [{id, name, role, email, pass}]
+     * role ∈ { 'SOLICITANTE', 'APROVADOR', 'COMPRAS', 'ADMIN' }
+     * reqs: [{
+     *   id, code, title, desc, costCenter, needDate, vendorSuggest,
+     *   items:[{desc, qty, price}], files:[string],
+     *   status, createdAt, createdBy,
+     *   approverId, buyerId,
+     *   approvals:[{by, date, decision, comment}],
+     *   tracking:[{date, status, note, meta}]
+     * }]
+     */
+
+    function loadDB(){
+      const raw = localStorage.getItem(DB_KEY);
+      return raw ? JSON.parse(raw) : { users: [], reqs: [], seq: 1 };
+    }
+    function saveDB(db){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+
+    function seedDemo(){
+      const db = { users: [
+        {id:1, name:'Ana Souza', role:'SOLICITANTE', email:'ana@suzano.com', pass:'123'},
+        {id:2, name:'Carlos Lima', role:'APROVADOR', email:'carlos@suzano.com', pass:'123'},
+        {id:3, name:'Beatriz Nunes', role:'COMPRAS', email:'beatriz@suzano.com', pass:'123'},
+        {id:4, name:'Admin', role:'ADMIN', email:'admin@suzano.com', pass:'123'}
+      ], reqs: [], seq: 1 };
+      saveDB(db);
+      alert('Base de demonstração criada. Usuários: Ana (Solicitante), Carlos (Aprovador), Beatriz (Compras), Admin. Senha: 123');
+      populateLoginUsers();
+    }
+
+    /********************
+     * AUTENTICAÇÃO     *
+     ********************/
+    let currentUser = null; // {id, name, role}
+
+    function populateLoginUsers(){
+      const sel = document.getElementById('loginUser');
+      sel.innerHTML = '';
+      const db = loadDB();
+      db.users.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.id; opt.textContent = `${u.name} — ${u.role}`;
+        sel.appendChild(opt);
+      });
+    }
+
+    function login(){
+      const id = parseInt(document.getElementById('loginUser').value);
+      const pass = document.getElementById('loginPass').value;
+      const db = loadDB();
+      const u = db.users.find(x => x.id === id && x.pass === pass);
+      if(!u) { alert('Usuário ou senha inválidos.'); return; }
+      currentUser = { id: u.id, name: u.name, role: u.role };
+      sessionStorage.setItem('rc_user', JSON.stringify(currentUser));
+      route('dashboard');
+      refreshDashboard();
+    }
+
+    function restoreSession(){
+      const raw = sessionStorage.getItem('rc_user');
+      if(raw) currentUser = JSON.parse(raw);
+      if(currentUser) { route('dashboard'); refreshDashboard(); }
+    }
+
+    function logout(){
+      currentUser = null;
+      sessionStorage.removeItem('rc_user');
+      document.getElementById('loginPass').value = '';
+      route('login');
+      updateHeader();
+    }
+
+    function updateHeader(){
+      const span = document.getElementById('currentUserInfo');
+      const btn = document.getElementById('btnLogout');
+      if(currentUser){
+        span.textContent = `${currentUser.name} • ${currentUser.role}`;
+        btn.classList.remove('hidden');
+      } else {
+        span.textContent = 'Não autenticado';
+        btn.classList.add('hidden');
+      }
+    }
+
+    /********************
+     * ROTEAMENTO       *
+     ********************/
+    function route(view){
+      document.getElementById('viewLogin').classList.add('hidden');
+      document.getElementById('viewDashboard').classList.add('hidden');
+      document.getElementById('viewForm').classList.add('hidden');
+      document.getElementById('viewDetail').classList.add('hidden');
+      if(view==='login') document.getElementById('viewLogin').classList.remove('hidden');
+      if(view==='dashboard') document.getElementById('viewDashboard').classList.remove('hidden');
+      if(view==='form') document.getElementById('viewForm').classList.remove('hidden');
+      if(view==='detail') document.getElementById('viewDetail').classList.remove('hidden');
+      updateHeader();
+    }
+
+    /********************
+     * UTIL             *
+     ********************/
+    const money = n => (n||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    const fmtDate = s => s ? new Date(s).toLocaleDateString('pt-BR') : '—';
+    const nowISO = () => new Date().toISOString();
+    const nextCode = (db) => 'RC-' + String(db.seq).padStart(4,'0');
+
+    /********************
+     * DASHBOARD        *
+     ********************/
+    function refreshDashboard(){
+      if(!currentUser) return;
+      const db = loadDB();
+      document.getElementById('roleLabel').textContent = currentUser.role;
+
+      // contagem de pendências
+      let pending = 0;
+      db.reqs.forEach(r => {
+        if(currentUser.role==='APROVADOR' && r.status==='Pendente' && r.approverId===currentUser.id) pending++;
+        if(currentUser.role==='COMPRAS' && (r.status==='Aprovada' || r.status==='Em cotação') ) pending++;
+      });
+      document.getElementById('myCounts').textContent = pending;
+
+      renderCards();
+    }
+
+    function renderCards(){
+      const db = loadDB();
+      const q = document.getElementById('searchBox').value?.toLowerCase?.() || '';
+      const st = document.getElementById('filterStatus').value || '';
+      const wrap = document.getElementById('cards');
+      wrap.innerHTML='';
+
+      const visible = db.reqs.filter(r => {
+        const text = (r.title + ' ' + r.desc + ' ' + (r.vendorSuggest||'') + ' ' + r.code + ' ' + getUser(r.createdBy)?.name).toLowerCase();
+        const okQ = !q || text.includes(q);
+        const okS = !st || r.status===st;
+        return okQ && okS;
+      }).sort((a,b)=> b.createdAt.localeCompare(a.createdAt));
+
+      if(visible.length===0){
+        wrap.innerHTML = '<div class="small">Nenhuma requisição encontrada.</div>';
+        return;
+      }
+
+      visible.forEach(r => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        const total = (r.items||[]).reduce((s,it)=> s + (it.qty*it.price),0);
+        const statusClass = 'badge status-' + r.status.replaceAll(' ','\\ ');
+        card.innerHTML = `
+          <div class="flex" style="justify-content:space-between; align-items:flex-start;">
+            <div>
+              <h3>${r.code} • ${r.title}</h3>
+              <div class="small">Solicitante: ${getUser(r.createdBy)?.name || '—'} • ${fmtDate(r.createdAt)}</div>
+            </div>
+            <span class="${statusClass}">${r.status}</span>
+          </div>
+          <div class="small" style="margin-top:6px;">${r.desc?.slice(0,140) || ''}</div>
+          <div class="flex" style="justify-content:space-between; margin-top:8px;">
+            <div class="small">CC: ${r.costCenter||'—'} • Aprovador: ${getUser(r.approverId)?.name||'—'} • Compras: ${getUser(r.buyerId)?.name||'—'}</div>
+            <div><strong>Total:</strong> ${money(total)}</div>
+          </div>
+          <div class="right" style="margin-top:10px;">
+            <button class="btn" data-open="${r.id}">Abrir</button>
+          </div>
+        `;
+        wrap.appendChild(card);
+      });
+
+      // bind open buttons
+      wrap.querySelectorAll('button[data-open]').forEach(b=> b.addEventListener('click', e=> openDetail(parseInt(e.target.getAttribute('data-open')))));
+    }
+
+    /********************
+     * REQUISIÇÃO: FORM *
+     ********************/
+    let editingReqId = null;
+
+    function newReq(){
+      editingReqId = null;
+      document.getElementById('formMode').textContent = '(nova)';
+      ['reqTitle','reqDesc','reqCC','reqNeedDate','reqVendor'].forEach(id=> document.getElementById(id).value='');
+      document.getElementById('itemsTable').querySelector('tbody').innerHTML='';
+      document.getElementById('filesList').innerHTML='';
+      updateItemTotal(); updateGrandTotal();
+      populateApprovers();
+      route('form');
+    }
+
+    function populateApprovers(){
+      const db = loadDB();
+      const sel = document.getElementById('reqApprover');
+      sel.innerHTML='';
+      db.users.filter(u=>u.role==='APROVADOR').forEach(u=>{
+        const opt=document.createElement('option'); opt.value=u.id; opt.textContent=u.name; sel.appendChild(opt);
+      });
+    }
+
+    function addItem(){
+      const d = document.getElementById('itemDesc').value.trim();
+      const q = parseFloat(document.getElementById('itemQty').value||'0');
+      const p = parseFloat(document.getElementById('itemPrice').value||'0');
+      if(!d || q<=0) { alert('Preencha descrição e quantidade.'); return; }
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${d}</td>
+        <td class="nowrap">${q}</td>
+        <td class="nowrap">${p.toFixed(2)}</td>
+        <td class="nowrap">${(q*p).toFixed(2)}</td>
+        <td><button class="btn danger" data-del>Remover</button></td>
+      `;
+      document.querySelector('#itemsTable tbody').appendChild(tr);
+      document.getElementById('itemDesc').value='';
+      document.getElementById('itemQty').value='1';
+      document.getElementById('itemPrice').value='0';
+      updateGrandTotal();
+      tr.querySelector('[data-del]').addEventListener('click', ()=> { tr.remove(); updateGrandTotal(); });
+    }
+
+    function updateItemTotal(){
+      const q = parseFloat(document.getElementById('itemQty').value||'0');
+      const p = parseFloat(document.getElementById('itemPrice').value||'0');
+      document.getElementById('itemTotal').textContent = (q*p).toFixed(2);
+    }
+
+    function updateGrandTotal(){
+      const rows = Array.from(document.querySelectorAll('#itemsTable tbody tr'));
+      const total = rows.reduce((s, tr)=> s + parseFloat(tr.children[3].textContent.replace(',','.')), 0);
+      document.getElementById('grandTotal').textContent = money(total);
+    }
+
+    function addFile(){
+      const name = document.getElementById('fakeFileName').value.trim();
+      if(!name) return;
+      const span = document.createElement('span');
+      span.className = 'chip';
+      span.textContent = name;
+      const btn = document.createElement('button'); btn.className='btn ghost'; btn.textContent='x'; btn.style.padding='2px 6px';
+      btn.addEventListener('click', ()=> span.remove());
+      span.appendChild(btn);
+      document.getElementById('filesList').appendChild(span);
+      document.getElementById('fakeFileName').value='';
+    }
+
+    function collectItems(){
+      return Array.from(document.querySelectorAll('#itemsTable tbody tr')).map(tr=> ({
+        desc: tr.children[0].textContent,
+        qty: parseFloat(tr.children[1].textContent),
+        price: parseFloat(tr.children[2].textContent)
+      }));
+    }
+
+    function collectFiles(){
+      return Array.from(document.querySelectorAll('#filesList .chip')).map(ch=> ch.childNodes[0].nodeValue.trim());
+    }
+
+    function saveReq(submit=false){
+      if(!currentUser){ alert('Faça login.'); return; }
+      const title = document.getElementById('reqTitle').value.trim();
+      const desc = document.getElementById('reqDesc').value.trim();
+      const cc = document.getElementById('reqCC').value.trim();
+      const needDate = document.getElementById('reqNeedDate').value || null;
+      const vendor = document.getElementById('reqVendor').value.trim();
+      const approverId = parseInt(document.getElementById('reqApprover').value);
+      const items = collectItems();
+      const files = collectFiles();
+
+      if(!title || items.length===0){ alert('Informe um título e ao menos um item.'); return; }
+
+      const db = loadDB();
+
+      if(!editingReqId){
+        const id = Date.now();
+        const code = nextCode(db);
+        const req = { id, code, title, desc, costCenter: cc, needDate, vendorSuggest: vendor, items, files,
+          status: submit ? 'Pendente' : 'Rascunho', createdAt: nowISO(), createdBy: currentUser.id,
+          approverId, buyerId: null, approvals: [], tracking: [{date: nowISO(), status: 'Criada', note: submit? 'Enviada para aprovação.' : 'Salva como rascunho.'}] };
+        db.reqs.push(req);
+        db.seq++;
+        saveDB(db);
+        editingReqId = id;
+        alert('Requisição salva.');
+      } else {
+        const idx = db.reqs.findIndex(r=> r.id===editingReqId);
+        if(idx<0){ alert('Não encontrada.'); return; }
+        const r = db.reqs[idx];
+        Object.assign(r, { title, desc, costCenter: cc, needDate, vendorSuggest: vendor, items, files, approverId });
+        if(submit) r.status = 'Pendente';
+        r.tracking.push({date: nowISO(), status: 'Atualizada', note: submit? 'Reenviada para aprovação.' : 'Campos atualizados.'});
+        db.reqs[idx]=r; saveDB(db);
+        alert('Requisição atualizada.');
+      }
+      route('dashboard');
+      refreshDashboard();
+    }
+
+    /********************
+     * DETALHE / AÇÕES  *
+     ********************/
+    function getUser(id){ return loadDB().users.find(u=>u.id===id); }
+
+    function openDetail(id){
+      const db = loadDB();
+      const r = db.reqs.find(x=> x.id===id);
+      if(!r){ alert('Requisição não encontrada'); return; }
+
+      // header/status
+      const statusSpan = document.getElementById('detailStatus');
+      statusSpan.textContent = r.status;
+      statusSpan.className = 'badge status-' + r.status.replaceAll(' ','\\ ');
+
+      // body
+      const total = r.items.reduce((s,it)=> s + it.qty*it.price, 0);
+      const body = `
+        <div class="grid cols-2">
+          <div class="panel" style="padding:12px; background:transparent; border:1px dashed var(--border);">
+            <h3 style="margin:0 0 8px;">${r.code} • ${r.title}</h3>
+            <div class="small">Criada em ${fmtDate(r.createdAt)} por ${getUser(r.createdBy)?.name}</div>
+            <div class="sep"></div>
+            <div class="row">
+              <div><label>Centro de Custo</label><div>${r.costCenter||'—'}</div></div>
+              <div><label>Data Necessidade</label><div>${fmtDate(r.needDate)}</div></div>
+            </div>
+            <div class="sep"></div>
+            <div><label>Descrição</label><div>${r.desc||'—'}</div></div>
+            <div class="sep"></div>
+            <div class="row">
+              <div><label>Aprovador</label><div>${getUser(r.approverId)?.name||'—'}</div></div>
+              <div><label>Compras</label><div>${getUser(r.buyerId)?.name||'—'}</div></div>
+            </div>
+            <div class="sep"></div>
+            <div><label>Fornecedor sugerido</label><div>${r.vendorSuggest||'—'}</div></div>
+          </div>
+          <div class="panel" style="padding:12px; background:transparent; border:1px dashed var(--border);">
+            <h3 style="margin:0 0 8px;">Itens</h3>
+            <table class="table">
+              <thead><tr><th>Descrição</th><th>Qtd</th><th>Unit. (R$)</th><th>Total</th></tr></thead>
+              <tbody>
+                ${r.items.map(it=> `<tr><td>${it.desc}</td><td>${it.qty}</td><td>${it.price.toFixed(2)}</td><td>${(it.qty*it.price).toFixed(2)}</td></tr>`).join('')}
+              </tbody>
+            </table>
+            <div class="right" style="margin-top:8px;"><strong>Total:</strong> ${money(total)}</div>
+            <div class="sep"></div>
+            <h3 style="margin:0 0 8px;">Anexos</h3>
+            <div>${(r.files||[]).map(f=> `<span class='chip'>${f}</span>`).join(' ') || '<span class="small">Nenhum</span>'}</div>
+          </div>
+        </div>
+      `;
+      document.getElementById('detailBody').innerHTML = body;
+
+      // ações conforme papel/status
+      const area = document.getElementById('actionsArea');
+      area.innerHTML = '';
+      const isMyApproval = currentUser?.role==='APROVADOR' && r.approverId===currentUser.id && r.status==='Pendente';
+      const canEdit = currentUser?.id===r.createdBy && (r.status==='Rascunho' || r.status==='Rejeitada');
+      const isBuyer = currentUser?.role==='COMPRAS' && ['Aprovada','Em cotação','Pedido Emitido','Em Entrega'].includes(r.status);
+
+      if(isMyApproval){
+        area.innerHTML = `
+          <textarea id="decisionComment" rows="3" placeholder="Comentário (opcional)" style="flex:1"></textarea>
+          <button id="btnApprove" class="btn success">Aprovar</button>
+          <button id="btnReject" class="btn danger">Rejeitar</button>
+        `;
+        document.getElementById('btnApprove').onclick = ()=> decide(r.id, true);
+        document.getElementById('btnReject').onclick = ()=> decide(r.id, false);
+      }
+
+      if(canEdit){
+        const b = document.createElement('button'); b.className='btn'; b.textContent='Editar'; b.onclick=()=> editReq(r.id); area.appendChild(b);
+      }
+
+      if(isBuyer){
+        area.innerHTML += `
+          <input id="trkSupplier" placeholder="Fornecedor" style="max-width:200px;" />
+          <input id="trkPO" placeholder="Nº Pedido" style="max-width:120px;" />
+          <input id="trkETA" type="date" style="max-width:160px;" />
+          <select id="trkStatus">
+            <option ${r.status==='Em cotação'?'selected':''}>Em cotação</option>
+            <option ${r.status==='Pedido Emitido'?'selected':''}>Pedido Emitido</option>
+            <option ${r.status==='Em Entrega'?'selected':''}>Em Entrega</option>
+            <option ${r.status==='Concluída'?'selected':''}>Concluída</option>
+            <option ${r.status==='Cancelada'?'selected':''}>Cancelada</option>
+          </select>
+          <button id="btnTrack" class="btn primary">Atualizar acompanhamento</button>
+        `;
+        document.getElementById('btnTrack').onclick = ()=> track(r.id);
+      }
+
+      renderTimeline(r);
+      route('detail');
+    }
+
+    function renderTimeline(r){
+      const wrap = document.getElementById('timeline');
+      wrap.innerHTML = '';
+      const events = [
+        ...r.tracking,
+        ...r.approvals.map(a=> ({date: a.date, status: 'Decisão', note: `${getUser(a.by)?.name} • ${a.decision==='APROVADA'?'Aprovada':'Rejeitada'} • ${a.comment||''}`}))
+      ].sort((a,b)=> a.date.localeCompare(b.date));
+      events.forEach(ev=>{
+        const p = document.createElement('div');
+        p.className='panel'; p.style.padding='10px';
+        p.innerHTML = `<div class='small'>${new Date(ev.date).toLocaleString('pt-BR')}</div><div><strong>${ev.status}</strong></div><div class='small'>${ev.note||''}</div>`;
+        wrap.appendChild(p);
+      });
+    }
+
+    function decide(id, ok){
+      const db = loadDB();
+      const r = db.reqs.find(x=> x.id===id);
+      if(!r) return;
+      const comment = document.getElementById('decisionComment')?.value || '';
+      r.approvals.push({ by: currentUser.id, date: nowISO(), decision: ok?'APROVADA':'REJEITADA', comment });
+      r.status = ok ? 'Aprovada' : 'Rejeitada';
+      if(ok){ r.buyerId = db.users.find(u=> u.role==='COMPRAS')?.id || null; }
+      r.tracking.push({date: nowISO(), status: ok?'Aprovada':'Rejeitada', note: comment});
+      saveDB(db);
+      openDetail(id);
+      refreshDashboard();
+    }
+
+    function track(id){
+      const db = loadDB();
+      const r = db.reqs.find(x=> x.id===id);
+      if(!r) return;
+      const supplier = document.getElementById('trkSupplier').value.trim();
+      const po = document.getElementById('trkPO').value.trim();
+      const eta = document.getElementById('trkETA').value || null;
+      const status = document.getElementById('trkStatus').value;
+      r.status = status;
+      const meta = {}; if(supplier) meta.fornecedor = supplier; if(po) meta.pedido = po; if(eta) meta.eta = eta;
+      r.tracking.push({date: nowISO(), status, note: `Atualização Compras.`, meta});
+      saveDB(db);
+      openDetail(id);
+      refreshDashboard();
+    }
+
+    function editReq(id){
+      const db = loadDB();
+      const r = db.reqs.find(x=> x.id===id);
+      if(!r) return;
+      editingReqId = id;
+      document.getElementById('formMode').textContent = `(${r.code})`;
+      document.getElementById('reqTitle').value = r.title||'';
+      document.getElementById('reqDesc').value = r.desc||'';
+      document.getElementById('reqCC').value = r.costCenter||'';
+      document.getElementById('reqNeedDate').value = r.needDate||'';
+      document.getElementById('reqVendor').value = r.vendorSuggest||'';
+      populateApprovers();
+      document.getElementById('reqApprover').value = r.approverId||'';
+      const tbody = document.querySelector('#itemsTable tbody');
+      tbody.innerHTML='';
+      (r.items||[]).forEach(it=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${it.desc}</td><td class='nowrap'>${it.qty}</td><td class='nowrap'>${it.price.toFixed(2)}</td><td class='nowrap'>${(it.qty*it.price).toFixed(2)}</td><td><button class='btn danger' data-del>Remover</button></td>`;
+        tbody.appendChild(tr);
+        tr.querySelector('[data-del]').addEventListener('click', ()=> { tr.remove(); updateGrandTotal(); });
+      });
+      const fl = document.getElementById('filesList'); fl.innerHTML='';
+      (r.files||[]).forEach(f=>{
+        const span = document.createElement('span'); span.className='chip'; span.textContent=f; const btn=document.createElement('button'); btn.className='btn ghost'; btn.textContent='x'; btn.style.padding='2px 6px'; btn.onclick=()=> span.remove(); span.appendChild(btn); fl.appendChild(span);
+      });
+      updateGrandTotal();
+      route('form');
+    }
+
+    /********************
+     * EVENTOS UI       *
+     ********************/
+    document.getElementById('btnSeed').addEventListener('click', seedDemo);
+    document.getElementById('btnLogin').addEventListener('click', login);
+    document.getElementById('btnLogout').addEventListener('click', logout);
+    document.getElementById('btnNewReq').addEventListener('click', newReq);
+    document.getElementById('btnBack1').addEventListener('click', ()=> { route('dashboard'); refreshDashboard(); });
+    document.getElementById('btnBack2').addEventListener('click', ()=> { route('dashboard'); refreshDashboard(); });
+    document.getElementById('btnAddItem').addEventListener('click', addItem);
+    document.getElementById('itemQty').addEventListener('input', updateItemTotal);
+    document.getElementById('itemPrice').addEventListener('input', updateItemTotal);
+    document.getElementById('btnAddFile').addEventListener('click', addFile);
+    document.getElementById('btnSaveReq').addEventListener('click', ()=> saveReq(false));
+    document.getElementById('btnSubmitReq').addEventListener('click', ()=> saveReq(true));
+    document.getElementById('searchBox').addEventListener('input', renderCards);
+    document.getElementById('filterStatus').addEventListener('change', renderCards);
+
+    // INIT
+    (function init(){
+      if(loadDB().users.length===0) seedDemo(); else populateLoginUsers();
+      restoreSession();
+      updateHeader();
+    })();
+  </script>
+</body>
+</html>
