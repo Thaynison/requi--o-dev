@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Requisição de Compra</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div>
+        <div>Requisição de Compra</div>
+      </div>
+    </div>
+    <div class="right">
+      <span id="currentUserInfo" class="chip">Não autenticado</span>
+      <button id="btnLogout" class="btn ghost hidden">Sair</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- LOGIN -->
+    <section id="viewLogin" class="panel">
+      <h2>Entrar</h2>
+      <div class="row">
+        <div>
+          <label for="loginUser">Usuário</label>
+          <input id="loginUser" type="text" placeholder="Seu usuário" />
+        </div>
+        <div>
+          <label for="loginPass">Senha</label>
+          <input id="loginPass" type="password" placeholder="••••••" />
+        </div>
+      </div>
+      <div class="sep"></div>
+      <div class="toolbar">
+        <button id="btnLogin" class="btn primary">Entrar</button>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="viewDashboard" class="panel hidden">
+      <div class="toolbar">
+        <button id="btnNewReq" class="btn primary">+ Nova Requisição</button>
+        <span class="pill">Perfil: <span id="roleLabel">—</span></span>
+        <span class="pill">Minhas pendências: <span id="myCounts">0</span></span>
+        <span class="stretch"></span>
+        <input id="searchBox" placeholder="Buscar por título, solicitante, fornecedor..." />
+        <select id="filterStatus">
+          <option value="">Todos status</option>
+          <option>Rascunho</option>
+          <option>Pendente</option>
+          <option>Em cotação</option>
+          <option>Aprovada</option>
+          <option>Rejeitada</option>
+          <option>Pedido Emitido</option>
+          <option>Em Entrega</option>
+          <option>Concluída</option>
+          <option>Cancelada</option>
+        </select>
+      </div>
+      <div class="sep"></div>
+      <div id="cards" class="card-list"></div>
+    </section>
+
+    <!-- FORM NOVA/EDIT REQUISIÇÃO -->
+    <section id="viewForm" class="panel hidden">
+      <div class="toolbar">
+        <button id="btnBack1" class="btn ghost">← Voltar</button>
+        <h2 style="margin:0;">Requisição <span id="formMode">(nova)</span></h2>
+        <span class="stretch"></span>
+        <button id="btnSaveReq" class="btn success">Salvar</button>
+        <button id="btnSubmitReq" class="btn primary">Enviar p/ aprovação</button>
+      </div>
+      <div class="sep"></div>
+
+      <div class="grid cols-2">
+        <div>
+          <label>Título *</label>
+          <input id="reqTitle" placeholder="Ex.: Compra de EPIs" />
+        </div>
+        <div class="row">
+          <div>
+            <label>Centro de Custo *</label>
+            <input id="reqCC" placeholder="Ex.: Manutenção - Fibras" />
+          </div>
+          <div>
+            <label>Data Necessidade *</label>
+            <input id="reqNeedDate" type="date" />
+          </div>
+        </div>
+        <div>
+          <label>Descrição *</label>
+          <textarea id="reqDesc" rows="4" placeholder="Justificativa e detalhes..."></textarea>
+        </div>
+        <div class="row">
+          <div>
+            <label>Sugestão de Fornecedor</label>
+            <input id="reqVendor" placeholder="Opcional" />
+          </div>
+          <div>
+            <label>Aprovador Responsável *</label>
+            <select id="reqApprover"></select>
+          </div>
+        </div>
+      </div>
+
+      <h3>Itens *</h3>
+      <table class="table" id="itemsTable">
+        <thead>
+          <tr><th>Descrição</th><th class="nowrap">Qtd</th><th class="nowrap">Unidade</th><th class="nowrap">Preço Unit. (R$)</th><th>Total (R$)</th><th></th></tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr>
+            <td><input id="itemDesc" placeholder="Ex.: Luva nitrílica"/></td>
+            <td><input id="itemQty" type="number" min="1" value="1"/></td>
+            <td>
+              <select id="itemUnit">
+                <option value="UN">UN</option>
+                <option value="CX">CX</option>
+                <option value="PC">PC</option>
+                <option value="M">M</option>
+                <option value="KG">KG</option>
+                <option value="L">L</option>
+              </select>
+            </td>
+            <td><input id="itemPrice" type="number" min="0" step="0.01" value="0"/></td>
+            <td class="nowrap" id="itemTotal">0,00</td>
+            <td><button id="btnAddItem" class="btn">Adicionar</button></td>
+          </tr>
+        </tfoot>
+      </table>
+      <div class="right"><strong>Total Geral:</strong> <span id="grandTotal">R$ 0,00</span></div>
+
+      <h3>Anexos</h3>
+      <div class="row">
+        <div>
+          <input type="file" id="fileUpload" />
+        </div>
+        <div>
+          <button id="btnAddFile" class="btn">Adicionar Anexo</button>
+        </div>
+      </div>
+      <div id="filesList" class="small"></div>
+    </section>
+
+    <!-- VISUALIZAÇÃO / WORKFLOW -->
+    <section id="viewDetail" class="panel hidden">
+      <div class="toolbar">
+        <button id="btnBack2" class="btn ghost">← Voltar</button>
+        <h2 style="margin:0;">Detalhe da Requisição</h2>
+        <span class="stretch"></span>
+        <span id="detailStatus" class="badge status-Pendente">Pendente</span>
+      </div>
+      <div class="sep"></div>
+
+      <div id="detailBody"></div>
+
+      <div class="sep"></div>
+
+      <div id="actionsArea" class="toolbar"></div>
+
+      <div class="sep"></div>
+
+      <h3>Histórico</h3>
+      <div id="timeline" class="grid"></div>
+    </section>
+
+    <div class="footer">Sistema de Requisições &copy; By Thaynison Couto</div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
